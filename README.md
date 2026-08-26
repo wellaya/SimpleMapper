@@ -6,27 +6,27 @@ commercial license.
 
 ## Install
 
-\`\`\`bash
+```bash
 dotnet add package SimpleMapper
-\`\`\`
+```
 
 ## Quick start
 
-\`\`\`csharp
+```csharp
 services.AddSimpleMapper(typeof(MyProfile).Assembly);
 
 public class MyProfile : MapProfile
 {
-public override void Configure(IMapperConfigurationExpression config)
-{
-config.CreateMap<Order, OrderDto>()
-.ForMember(d => d.CustomerName, s => s.Customer.FullName);
-}
+    public override void Configure(IMapperConfigurationExpression config)
+    {
+        config.CreateMap<Order, OrderDto>()
+            .ForMember(d => d.CustomerName, s => s.Customer.FullName);
+    }
 }
 
 var dto = mapper.Map<Order, OrderDto>(order);
 var queryable = mapper.ProjectTo<OrderDto>(dbContext.Orders); // EF Core-friendly
-\`\`\`
+```
 
 ## Features
 
@@ -36,10 +36,6 @@ var queryable = mapper.ProjectTo<OrderDto>(dbContext.Orders); // EF Core-friendl
 - Compiled expression trees (cached, fast)
 - Config validation (`AssertConfigurationIsValid`)
 - Zero dependencies, MIT licensed
-
-## License
-
-MIT
 
 ## Performance
 
@@ -51,6 +47,11 @@ Benchmarked with [BenchmarkDotNet](https://benchmarkdotnet.org/) mapping a neste
 | 'SimpleMapper (compiled expression, cached)' | 1,441.1 ns |  47.07 ns | 130.42 ns | 1,416.4 ns |  6.63 |    1.15 |    2 | 0.4482 |     704 B |        1.22 |
 | 'Raw reflection (no caching, naive)'         | 4,499.4 ns | 149.07 ns | 430.11 ns | 4,403.6 ns | 20.70 |    3.65 |    3 | 1.1063 |    1737 B |        3.02 |
 
-SimpleMapper compiles each type-pair mapping into a cached expression tree on
-first use, so steady-state performance approaches hand-written code while
-avoiding per-call reflection overhead.
+SimpleMapper is roughly **3x faster than naive reflection** with far fewer
+allocations, while staying close to hand-written mapping code. See the
+[Optimization notes](#optimization-notes) below for what accounts for the gap
+vs. manual mapping.
+
+## License
+
+MIT
