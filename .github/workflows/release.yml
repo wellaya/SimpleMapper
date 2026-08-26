@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # REQUIRED — enables GitHub to issue an OIDC token for this job
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Test
+        run: dotnet test -c Release
+
+      - name: Pack
+        run: dotnet pack SimpleMapper/SimpleMapper.csproj -c Release -p:Version=${{ steps.version.outputs.VERSION }} -o ./artifacts
+
+      # Exchange the GitHub OIDC token for a short-lived NuGet API key
+      - name: NuGet login (OIDC -> temp API key)
+        uses: NuGet/login@v1
+        with:
+          user: wellaya   # your nuget.org profile name, NOT your email
+
+      - name: Push to NuGet
+        run: dotnet nuget push "./artifacts/*.nupkg" --source https://api.nuget.org/v3/index.json --skip-duplicate
