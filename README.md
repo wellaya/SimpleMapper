@@ -1,8 +1,7 @@
 # SimpleMapper
 
 A lightweight, dependency-free object-to-object mapper for .NET — built as an
-open-source alternative for teams that can't or don't want to use AutoMapper's
-commercial license.
+open-source.
 
 ## Install
 
